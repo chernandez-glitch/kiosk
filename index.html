@@ -5,37 +5,422 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>ONEFix Kiosk</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: #1a1a2e; }
-    #loading {
-      position: fixed; inset: 0; display: flex; flex-direction: column;
-      align-items: center; justify-content: center; color: #fff; font-family: sans-serif;
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #252836;
+      --accent: #2563eb;
+      --success: #16a34a;
+      --danger: #dc2626;
+      --warning: #d97706;
+      --text: #f1f5f9;
+      --text2: #94a3b8;
+      --border: #2d3748;
+      --r: 12px;
     }
-    .spinner {
-      width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.2);
-      border-top-color: #fff; border-radius: 50%;
-      animation: spin 0.8s linear infinite; margin-bottom: 16px;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { width: 100%; min-height: 100vh; background: var(--bg); color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      -webkit-font-smoothing: antialiased; }
+
+    .screen { display: none; min-height: 100vh; padding: 24px 16px 40px;
+      flex-direction: column; align-items: center; }
+    .screen.active { display: flex; }
+
+    .hdr { width: 100%; max-width: 440px; display: flex; align-items: center;
+      gap: 8px; margin-bottom: 28px; }
+    .logo { font-size: 22px; font-weight: 800; color: var(--accent); letter-spacing: -0.5px; }
+    .logo span { color: var(--text); }
+    .logo-sub { font-size: 11px; color: var(--text2); letter-spacing: 1px; text-transform: uppercase; }
+
+    .card { width: 100%; max-width: 440px; background: var(--surface);
+      border: 1px solid var(--border); border-radius: var(--r); padding: 18px; margin-bottom: 14px; }
+
+    .eq-name { font-size: 24px; font-weight: 700; margin-bottom: 3px; }
+    .eq-code { font-size: 13px; color: var(--text2); margin-bottom: 10px; }
+    .tag { display: inline-block; font-size: 12px; padding: 3px 10px; border-radius: 99px;
+      background: var(--surface2); color: var(--text2); border: 1px solid var(--border); }
+
+    .badge { display: inline-flex; align-items: center; gap: 6px;
+      font-size: 13px; padding: 4px 12px; border-radius: 99px; font-weight: 600; }
+    .badge.open  { background: rgba(22,163,74,.15); color: #4ade80; border: 1px solid rgba(22,163,74,.3); }
+    .badge.close { background: rgba(100,116,139,.15); color: var(--text2); border: 1px solid var(--border); }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+
+    .row { display: flex; justify-content: space-between; align-items: center;
+      font-size: 14px; padding: 4px 0; }
+    .row + .row { border-top: 1px solid var(--border); }
+    .rl { color: var(--text2); }
+    .rv { font-weight: 500; }
+
+    .sec-title { width: 100%; max-width: 440px; font-size: 19px; font-weight: 700; margin-bottom: 18px; }
+
+    .fg { width: 100%; max-width: 440px; margin-bottom: 14px; }
+    label { display: block; font-size: 13px; color: var(--text2); margin-bottom: 6px; font-weight: 500; }
+    select, input[type="number"], input[type="text"] {
+      width: 100%; padding: 13px 14px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text); font-size: 15px;
+      -webkit-appearance: none; appearance: none; }
+    select:focus, input:focus { outline: none; border-color: var(--accent); }
+    select option { background: var(--surface2); }
+    .hint { font-size: 12px; color: var(--text2); margin-top: 5px; }
+
+    .btn { width: 100%; max-width: 440px; padding: 15px; border-radius: var(--r);
+      border: none; font-size: 16px; font-weight: 600; cursor: pointer;
+      margin-bottom: 10px; transition: opacity .15s; }
+    .btn:active { opacity: .8; }
+    .btn:disabled { opacity: .45; cursor: not-allowed; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-success { background: var(--success); color: #fff; }
+    .btn-danger  { background: var(--danger);  color: #fff; }
+    .btn-ghost   { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+
+    /* Loading */
+    #s-loading { justify-content: center; }
+    .spinner { width: 46px; height: 46px; border: 4px solid rgba(255,255,255,.1);
+      border-top-color: var(--accent); border-radius: 50%;
+      animation: spin .8s linear infinite; margin-bottom: 16px; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    iframe { width: 100%; height: 100%; border: none; display: none; }
+    .ld-txt { color: var(--text2); font-size: 15px; }
+
+    /* Result */
+    #s-result { justify-content: center; text-align: center; }
+    .ri { font-size: 60px; line-height: 1; margin-bottom: 18px; }
+    .rt { font-size: 22px; font-weight: 700; margin-bottom: 10px; }
+    .rm { font-size: 14px; color: var(--text2); line-height: 1.6;
+      margin-bottom: 30px; max-width: 320px; white-space: pre-line; }
+
+    /* Error */
+    .err-box { width: 100%; max-width: 440px;
+      background: rgba(220,38,38,.1); border: 1px solid rgba(220,38,38,.3);
+      border-radius: var(--r); padding: 16px; margin-bottom: 16px;
+      font-size: 14px; color: #fca5a5; line-height: 1.5; }
+
+    .spacer { flex: 1; }
   </style>
 </head>
 <body>
-  <div id="loading">
-    <div class="spinner"></div>
-    <p>Cargando sistema...</p>
+
+<!-- LOADING -->
+<div id="s-loading" class="screen active">
+  <div class="spinner"></div>
+  <p class="ld-txt">Verificando equipo...</p>
+</div>
+
+<!-- ERROR FATAL -->
+<div id="s-error" class="screen">
+  <div class="hdr"><div class="logo">ONE<span>Fix</span></div><span class="logo-sub">Kiosk</span></div>
+  <div style="font-size:52px;margin-bottom:16px">⚠️</div>
+  <div style="font-size:20px;font-weight:700;margin-bottom:10px">QR Inválido</div>
+  <div id="err-msg" class="err-box"></div>
+</div>
+
+<!-- MAIN -->
+<div id="s-main" class="screen">
+  <div class="hdr"><div class="logo">ONE<span>Fix</span></div><span class="logo-sub">Kiosk</span></div>
+
+  <div class="card">
+    <div class="eq-name" id="m-nombre"></div>
+    <div class="eq-code" id="m-codigo"></div>
+    <span class="tag" id="m-tipo"></span>
   </div>
-  <iframe id="app" allow="camera; microphone"></iframe>
-  <script>
-    var GAS_URL = 'https://script.google.com/macros/s/AKfycbwoHAEtrZWuPDlv8x8mvuYL6PmWtUbvIoT1kQG6LyBd6vgNNdBolphU9hE8g2IABEdZ/exec';
-    var params = new URLSearchParams(window.location.search);
-    var token = params.get('kiosk') || '';
-    var iframe = document.getElementById('app');
-    iframe.src = token ? GAS_URL + '?kiosk=' + encodeURIComponent(token) : GAS_URL;
-    iframe.onload = function() {
-      document.getElementById('loading').style.display = 'none';
-      iframe.style.display = 'block';
-    };
-  </script>
+
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <span style="font-weight:600;font-size:15px">Estado del turno</span>
+      <span class="badge" id="m-badge"></span>
+    </div>
+    <div id="m-turno-info"></div>
+  </div>
+
+  <div class="spacer"></div>
+  <button class="btn btn-success" id="btn-ini" onclick="goIniciar()">▶ Iniciar Turno</button>
+  <button class="btn btn-danger"  id="btn-cer" onclick="goCerrar()">■ Cerrar Turno</button>
+</div>
+
+<!-- INICIAR TURNO -->
+<div id="s-iniciar" class="screen">
+  <div class="hdr"><div class="logo">ONE<span>Fix</span></div></div>
+  <div class="sec-title">Iniciar Turno</div>
+
+  <div class="card" style="margin-bottom:20px">
+    <div style="font-size:12px;color:var(--text2)">Equipo</div>
+    <div style="font-weight:600;margin-top:2px;font-size:16px" id="i-eq"></div>
+  </div>
+
+  <div class="fg">
+    <label>Operador responsable</label>
+    <select id="i-operador"><option value="">-- Selecciona --</option></select>
+  </div>
+
+  <div class="fg">
+    <label>Proyecto</label>
+    <select id="i-proyecto"><option value="">-- Selecciona --</option></select>
+  </div>
+
+  <div class="fg">
+    <label id="i-horo-lbl">Horómetro inicial</label>
+    <input type="number" id="i-horo" min="0" step="0.1" placeholder="Ej: 1234.5">
+    <div class="hint" id="i-horo-hint"></div>
+  </div>
+
+  <div class="spacer"></div>
+  <button class="btn btn-success" id="btn-ini-ok" onclick="submitIniciar()">Confirmar Inicio de Turno</button>
+  <button class="btn btn-ghost" onclick="goMain()">Cancelar</button>
+</div>
+
+<!-- CERRAR TURNO -->
+<div id="s-cerrar" class="screen">
+  <div class="hdr"><div class="logo">ONE<span>Fix</span></div></div>
+  <div class="sec-title">Cerrar Turno</div>
+
+  <div class="card" style="margin-bottom:20px">
+    <div style="font-size:12px;color:var(--text2);margin-bottom:8px">Turno activo</div>
+    <div id="c-info"></div>
+  </div>
+
+  <div class="fg">
+    <label id="c-horo-lbl">Horómetro final</label>
+    <input type="number" id="c-horo" min="0" step="0.1" placeholder="Ej: 1256.0">
+    <div class="hint" id="c-horo-hint"></div>
+  </div>
+
+  <div class="spacer"></div>
+  <button class="btn btn-danger" id="btn-cer-ok" onclick="submitCerrar()">Confirmar Cierre de Turno</button>
+  <button class="btn btn-ghost" onclick="goMain()">Cancelar</button>
+</div>
+
+<!-- RESULTADO -->
+<div id="s-result" class="screen">
+  <div class="ri" id="r-icon"></div>
+  <div class="rt" id="r-title"></div>
+  <div class="rm" id="r-msg"></div>
+  <button class="btn btn-primary" style="max-width:280px" onclick="goMain()">Volver al inicio</button>
+</div>
+
+<script>
+var GAS = 'https://script.google.com/macros/s/AKfycbwoHAEtrZWuPDlv8x8mvuYL6PmWtUbvIoT1kQG6LyBd6vgNNdBolphU9hE8g2IABEdZ/exec';
+var TOKEN = new URLSearchParams(window.location.search).get('kiosk') || '';
+var ST = null; // estado actual
+
+function show(id) {
+  document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function apiGet(params) {
+  var url = GAS + '?api=kiosk&token=' + encodeURIComponent(TOKEN);
+  Object.keys(params).forEach(function(k) {
+    url += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+  });
+  return fetch(url).then(function(r) {
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  });
+}
+
+function apiPost(body) {
+  body.token = TOKEN;
+  return fetch(GAS, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify(body)
+  }).then(function(r) {
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return r.json();
+  });
+}
+
+function goMain() { cargarEstado(); }
+
+function cargarEstado() {
+  show('s-loading');
+  if (!TOKEN) {
+    show('s-error');
+    document.getElementById('err-msg').textContent = 'Este QR no tiene token. Escanea un QR válido generado desde el sistema.';
+    return;
+  }
+  apiGet({ action: 'estado' })
+    .then(function(data) {
+      if (!data.valid) {
+        show('s-error');
+        document.getElementById('err-msg').textContent = data.mensaje || 'QR inválido o revocado.';
+        return;
+      }
+      ST = data;
+      renderMain();
+      show('s-main');
+    })
+    .catch(function(err) {
+      show('s-error');
+      document.getElementById('err-msg').textContent = 'No se pudo conectar con el servidor. Verifica tu conexión a internet e intenta de nuevo.';
+    });
+}
+
+function renderMain() {
+  var eq = ST.equipo;
+  document.getElementById('m-nombre').textContent = eq.nombre;
+  document.getElementById('m-codigo').textContent = eq.codigo + (eq.modelo ? ' · ' + eq.modelo : '');
+  document.getElementById('m-tipo').textContent = eq.tipo || 'Equipo';
+
+  var badge = document.getElementById('m-badge');
+  var info  = document.getElementById('m-turno-info');
+  var bIni  = document.getElementById('btn-ini');
+  var bCer  = document.getElementById('btn-cer');
+
+  if (ST.turnoAbierto && ST.datosTurno) {
+    badge.className = 'badge open';
+    badge.innerHTML = '<div class="dot"></div>Turno abierto';
+    var dt = ST.datosTurno;
+    var fecha = (dt.fechaInicio || '').substring(0, 10) || '—';
+    info.innerHTML = rows([
+      ['Operador', dt.operador],
+      ['Proyecto',  dt.proyecto],
+      ['Inicio',    fecha],
+      [(eq.unidad === 'kms' ? 'Kms iniciales' : 'Horóm. inicial'), dt.hInicial + ' ' + eq.unidad]
+    ]);
+    bIni.style.display = 'none';
+    bCer.style.display = 'block';
+  } else {
+    badge.className = 'badge close';
+    badge.innerHTML = '<div class="dot"></div>Sin turno';
+    var refTxt = (ST.ultimoHorometro != null)
+      ? 'Último registro: ' + ST.ultimoHorometro + ' ' + eq.unidad
+      : 'Sin registros previos';
+    info.innerHTML = '<div style="color:var(--text2);font-size:14px;padding:4px 0">' + esc(refTxt) + '</div>';
+    bIni.style.display = 'block';
+    bCer.style.display = 'none';
+  }
+}
+
+function goIniciar() {
+  var eq = ST.equipo;
+  document.getElementById('i-eq').textContent = eq.nombre;
+  document.getElementById('i-horo-lbl').textContent = eq.unidad === 'kms' ? 'Kilómetros iniciales' : 'Horómetro inicial';
+
+  var selOp = document.getElementById('i-operador');
+  selOp.innerHTML = '<option value="">-- Selecciona operador --</option>';
+  (ST.operadores || []).forEach(function(op) {
+    selOp.innerHTML += '<option value="' + esc(op) + '">' + esc(op) + '</option>';
+  });
+
+  var selPr = document.getElementById('i-proyecto');
+  selPr.innerHTML = '<option value="">-- Selecciona proyecto --</option>';
+  (ST.proyectos || []).forEach(function(p) {
+    var sel = (p === eq.proyecto) ? ' selected' : '';
+    selPr.innerHTML += '<option value="' + esc(p) + '"' + sel + '>' + esc(p) + '</option>';
+  });
+
+  var ref = ST.ultimoHorometro;
+  document.getElementById('i-horo-hint').textContent = ref != null
+    ? 'Referencia: último cierre = ' + ref + ' ' + eq.unidad
+    : 'Primer registro de este equipo';
+  document.getElementById('i-horo').value = '';
+  document.getElementById('btn-ini-ok').disabled = false;
+  document.getElementById('btn-ini-ok').textContent = 'Confirmar Inicio de Turno';
+  show('s-iniciar');
+}
+
+function goCerrar() {
+  var dt = ST.datosTurno;
+  var eq = ST.equipo;
+  var fecha = (dt.fechaInicio || '').substring(0, 10) || '—';
+  document.getElementById('c-info').innerHTML = rows([
+    ['Equipo',    eq.nombre],
+    ['Operador',  dt.operador],
+    ['Proyecto',  dt.proyecto],
+    ['Inicio',    fecha],
+    [(eq.unidad === 'kms' ? 'Kms iniciales' : 'Horóm. inicial'), dt.hInicial + ' ' + eq.unidad]
+  ]);
+  document.getElementById('c-horo-lbl').textContent = eq.unidad === 'kms' ? 'Kilómetros finales' : 'Horómetro final';
+  document.getElementById('c-horo-hint').textContent = 'Debe ser mayor o igual a ' + dt.hInicial + ' ' + eq.unidad;
+  document.getElementById('c-horo').value = '';
+  document.getElementById('btn-cer-ok').disabled = false;
+  document.getElementById('btn-cer-ok').textContent = 'Confirmar Cierre de Turno';
+  show('s-cerrar');
+}
+
+function submitIniciar() {
+  var operador = document.getElementById('i-operador').value.trim();
+  var proyecto = document.getElementById('i-proyecto').value.trim();
+  var hStr     = document.getElementById('i-horo').value;
+  var hInicial = parseFloat(hStr);
+
+  if (!operador) { alert('Selecciona el operador responsable.'); return; }
+  if (!proyecto) { alert('Selecciona el proyecto.'); return; }
+  if (hStr === '' || isNaN(hInicial)) { alert('Ingresa el horómetro / kms inicial.'); return; }
+
+  var btn = document.getElementById('btn-ini-ok');
+  btn.disabled = true;
+  btn.textContent = 'Enviando...';
+
+  apiPost({ action: 'abrirTurno', operador: operador, proyecto: proyecto, hInicial: hInicial })
+    .then(function(res) {
+      if (res.success) {
+        showResult('✅', 'Turno Iniciado', res.mensaje || 'El turno fue registrado correctamente.');
+      } else {
+        btn.disabled = false;
+        btn.textContent = 'Confirmar Inicio de Turno';
+        showResult('❌', 'No se pudo iniciar', res.mensaje || 'Error desconocido.');
+      }
+    })
+    .catch(function() {
+      btn.disabled = false;
+      btn.textContent = 'Confirmar Inicio de Turno';
+      showResult('❌', 'Error de conexión', 'No se pudo conectar. Intenta de nuevo.');
+    });
+}
+
+function submitCerrar() {
+  var hStr   = document.getElementById('c-horo').value;
+  var hFinal = parseFloat(hStr);
+  if (hStr === '' || isNaN(hFinal)) { alert('Ingresa el horómetro / kms final.'); return; }
+
+  var btn = document.getElementById('btn-cer-ok');
+  btn.disabled = true;
+  btn.textContent = 'Cerrando...';
+
+  apiPost({ action: 'cerrarTurno', hFinal: hFinal })
+    .then(function(res) {
+      if (res.success) {
+        showResult('✅', 'Turno Cerrado', res.mensaje || 'El turno fue cerrado correctamente.');
+      } else {
+        btn.disabled = false;
+        btn.textContent = 'Confirmar Cierre de Turno';
+        var msg = res.mensaje || 'Error desconocido.';
+        if (res.requiereWebApp) {
+          msg += '\n\nUsa la app web para registrar las actividades pendientes y cerrar el turno.';
+        }
+        showResult('❌', 'No se pudo cerrar', msg);
+      }
+    })
+    .catch(function() {
+      btn.disabled = false;
+      btn.textContent = 'Confirmar Cierre de Turno';
+      showResult('❌', 'Error de conexión', 'No se pudo conectar. Intenta de nuevo.');
+    });
+}
+
+function showResult(icon, title, msg) {
+  document.getElementById('r-icon').textContent  = icon;
+  document.getElementById('r-title').textContent = title;
+  document.getElementById('r-msg').textContent   = msg;
+  show('s-result');
+}
+
+function rows(pairs) {
+  return pairs.map(function(p) {
+    return '<div class="row"><span class="rl">' + esc(p[0]) + '</span><span class="rv">' + esc(String(p[1] || '—')) + '</span></div>';
+  }).join('');
+}
+
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+cargarEstado();
+</script>
 </body>
 </html>
