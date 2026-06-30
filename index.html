@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ONEFix Kiosk</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #1a1a2e; }
+    #loading {
+      position: fixed; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; color: #fff; font-family: sans-serif;
+    }
+    .spinner {
+      width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.2);
+      border-top-color: #fff; border-radius: 50%;
+      animation: spin 0.8s linear infinite; margin-bottom: 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    iframe { width: 100%; height: 100%; border: none; display: none; }
+  </style>
+</head>
+<body>
+  <div id="loading">
+    <div class="spinner"></div>
+    <p>Cargando sistema...</p>
+  </div>
+  <iframe id="app" allow="camera; microphone"></iframe>
+  <script>
+    var GAS_URL = 'https://script.google.com/macros/s/AKfycbwoHAEtrZWuPDlv8x8mvuYL6PmWtUbvIoT1kQG6LyBd6vgNNdBolphU9hE8g2IABEdZ/exec';
+    var params = new URLSearchParams(window.location.search);
+    var token = params.get('kiosk') || '';
+    var iframe = document.getElementById('app');
+    iframe.src = token ? GAS_URL + '?kiosk=' + encodeURIComponent(token) : GAS_URL;
+    iframe.onload = function() {
+      document.getElementById('loading').style.display = 'none';
+      iframe.style.display = 'block';
+    };
+  </script>
+</body>
+</html>
