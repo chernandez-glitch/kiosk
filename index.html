@@ -198,7 +198,9 @@
 
   <div class="fg">
     <label>Operador responsable</label>
-    <select id="i-operador"><option value="">— Selecciona operador —</option></select>
+    <input type="text" id="i-operador" list="i-op-list" placeholder="Selecciona o escribe el nombre...">
+    <datalist id="i-op-list"></datalist>
+    <div class="hint">Elige de la lista o escribe el nombre si no aparece.</div>
   </div>
 
   <div class="fg">
@@ -480,11 +482,12 @@ function goIniciar() {
   document.getElementById('i-horo-lbl').textContent =
     eq.unidad === 'kms' ? 'Kilómetros iniciales' : 'Horómetro inicial';
 
-  var selOp = document.getElementById('i-operador');
-  selOp.innerHTML = '<option value="">— Selecciona operador —</option>';
+  var dl = document.getElementById('i-op-list');
+  dl.innerHTML = '';
   (ST.operadores || []).forEach(function(op) {
-    selOp.innerHTML += '<option value="' + esc(op) + '">' + esc(op) + '</option>';
+    dl.innerHTML += '<option value="' + esc(op) + '">';
   });
+  document.getElementById('i-operador').value = '';
 
   var selPr = document.getElementById('i-proyecto');
   selPr.innerHTML = '<option value="">— Selecciona proyecto —</option>';
