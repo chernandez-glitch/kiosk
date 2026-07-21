@@ -6,15 +6,14 @@
   <title>ONEFix Kiosk</title>
   <style>
     :root {
-      /* Paleta alineada con el sistema (look "Enterprise Command Center") */
       --bg:       #0B1221;
-      --surface:  #131F37;   /* glass-card */
-      --surf2:    #081020;   /* inputs */
+      --surface:  #131F37;
+      --surf2:    #081020;
       --surf3:    #1B2A47;
-      --accent:   #1D4ED8;   /* brand DEFAULT */
+      --accent:   #1D4ED8;
       --accent2:  #2563eb;
       --accent-lt:#60A5FA;
-      --brand-lt: #93C5FD;   /* brand light */
+      --brand-lt: #93C5FD;
       --success:  #16a34a;
       --danger:   #dc2626;
       --warning:  #d97706;
@@ -31,21 +30,18 @@
       font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
       -webkit-font-smoothing:antialiased;
       background-color:var(--bg);
-      /* resplandor azul suave arriba (el "azul bonito" del sistema) */
       background-image:
         radial-gradient(1100px 560px at 50% -12%, rgba(29,78,216,.28), transparent 60%),
         radial-gradient(800px 500px at 100% 0%, rgba(37,99,235,.12), transparent 55%);
       background-attachment:fixed;
     }
 
-    /* ── Screens ── */
     .screen { display:none; min-height:100vh; padding:22px 16px 54px;
       flex-direction:column; align-items:center; }
     .screen.active { display:flex; animation:fade .35s ease; }
     #s-loading, #s-result { justify-content:center; }
     @keyframes fade { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
 
-    /* ── Header bar ── */
     .hdr { width:100%; max-width:460px; display:flex; align-items:center;
       justify-content:space-between; margin-bottom:22px;
       padding-bottom:16px; border-bottom:1px solid var(--border); }
@@ -59,20 +55,17 @@
       font-family:inherit; font-weight:600; }
     .back-btn:active { color:var(--accent-lt); }
 
-    /* ── Card (glass) ── */
     .card { width:100%; max-width:460px; background:var(--surface);
       border:1px solid var(--border); border-radius:var(--r);
       padding:20px; margin-bottom:12px;
       box-shadow:0 25px 50px -18px rgba(0,0,0,.75); }
     .card-sm { padding:16px; }
 
-    /* ── Equipment card ── */
     .eq-top { display:flex; justify-content:space-between;
       align-items:flex-start; gap:10px; margin-bottom:12px; }
     .eq-name { font-size:22px; font-weight:800; line-height:1.15; letter-spacing:-.3px; }
     .eq-code { font-size:12px; color:var(--text2); margin-top:4px; }
 
-    /* ── Badges ── */
     .badges { display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-bottom:14px; }
     .badge { display:inline-flex; align-items:center; gap:6px;
       font-size:12px; font-weight:700; padding:5px 11px;
@@ -85,7 +78,6 @@
     .dot { width:7px; height:7px; border-radius:50%; background:currentColor; flex-shrink:0;
       box-shadow:0 0 0 3px rgba(255,255,255,.05); }
 
-    /* ── Info rows ── */
     .irow { display:flex; align-items:center; gap:10px; padding:9px 0;
       font-size:14px; border-top:1px solid var(--border); }
     .irow:first-child { border-top:none; padding-top:2px; }
@@ -93,13 +85,11 @@
     .irow-lbl  { color:var(--text2); min-width:88px; font-size:13px; }
     .irow-val  { font-weight:600; }
 
-    /* ── Section title ── */
     .sec-title { width:100%; max-width:460px; font-size:21px; font-weight:800;
       margin-bottom:18px; letter-spacing:-.3px; display:flex; align-items:center; gap:10px; }
     .sec-title::before { content:''; width:4px; height:22px; border-radius:99px;
       background:linear-gradient(180deg,var(--accent-lt),var(--accent)); }
 
-    /* ── Form fields ── */
     .fg { width:100%; max-width:460px; margin-bottom:15px; }
     label { display:block; font-size:11px; color:var(--text2); margin-bottom:7px;
       font-weight:700; letter-spacing:.5px; text-transform:uppercase; }
@@ -115,7 +105,6 @@
     textarea { min-height:110px; resize:vertical; line-height:1.5; }
     .hint { font-size:12px; color:var(--text2); margin-top:6px; }
 
-    /* ── Buttons ── */
     .btn { width:100%; max-width:460px; padding:16px; border-radius:var(--r);
       border:none; font-size:16px; font-weight:700; cursor:pointer; letter-spacing:.2px;
       margin-bottom:10px; transition:transform .1s, opacity .15s, box-shadow .15s;
@@ -131,26 +120,22 @@
     .btn-ghost { background:rgba(255,255,255,.04); color:var(--text);
       border:1px solid var(--border); box-shadow:none; }
 
-    /* 2-column button row */
     .btn-row { width:100%; max-width:460px; display:grid;
       grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px; }
     .btn-row .btn { margin-bottom:0; }
 
-    /* ── Loading ── */
     .spinner { width:46px; height:46px; border:4px solid rgba(96,165,250,.15);
       border-top-color:var(--accent-lt); border-radius:50%;
       animation:spin .8s linear infinite; margin-bottom:18px; }
     @keyframes spin { to { transform:rotate(360deg); } }
     .ld-txt { color:var(--text2); font-size:15px; }
 
-    /* ── Result ── */
     #s-result { text-align:center; }
     .ri { font-size:64px; line-height:1; margin-bottom:20px; }
     .rt { font-size:23px; font-weight:800; margin-bottom:10px; letter-spacing:-.3px; }
     .rm { font-size:14px; color:var(--text2); line-height:1.7;
       margin-bottom:32px; max-width:320px; white-space:pre-line; }
 
-    /* ── Error box ── */
     .err-box { width:100%; max-width:460px;
       background:rgba(220,38,38,.1); border:1px solid rgba(220,38,38,.3);
       border-radius:var(--r); padding:16px;
@@ -278,6 +263,12 @@
     <div style="font-size:13px;color:var(--text2);margin-top:4px" id="f-op"></div>
   </div>
 
+  <!-- Sistema afectado (se llena desde el backend; se oculta si no hay lista) -->
+  <div class="fg" id="f-fg-sistema">
+    <label>Sistema afectado</label>
+    <select id="f-sistema"><option value="">— Selecciona sistema —</option></select>
+  </div>
+
   <div class="fg">
     <label>Descripción de la falla *</label>
     <textarea id="f-desc" placeholder="Describe qué está fallando: sistema, componente o síntoma observado..."></textarea>
@@ -358,14 +349,12 @@ var TOKEN = new URLSearchParams(window.location.search).get('kiosk') || '';
 var ST    = null;
 var _timer = null;
 
-// ── Screens ─────────────────────────────────────────────────────────────────
 function show(id) {
   document.querySelectorAll('.screen').forEach(function(s) { s.classList.remove('active'); });
   document.getElementById(id).classList.add('active');
   window.scrollTo(0, 0);
 }
 
-// ── API ──────────────────────────────────────────────────────────────────────
 function apiGet(params) {
   var url = GAS + '?api=kiosk&token=' + encodeURIComponent(TOKEN);
   Object.keys(params).forEach(function(k) {
@@ -389,7 +378,6 @@ function apiPost(body) {
   });
 }
 
-// ── Elapsed timer ────────────────────────────────────────────────────────────
 function calcElapsed(fechaStr) {
   if (!fechaStr) return '';
   var s = new Date(fechaStr.replace('T', ' '));
@@ -414,7 +402,6 @@ function startElapsedTimer(fechaStr) {
   _timer = setInterval(upd, 60000);
 }
 
-// ── Main ─────────────────────────────────────────────────────────────────────
 function goMain() { cargarEstado(); }
 
 function cargarEstado() {
@@ -501,7 +488,6 @@ function irow(icon, lbl, val) {
   '</div>';
 }
 
-// ── Iniciar turno ─────────────────────────────────────────────────────────────
 function goIniciar() {
   var eq = ST.equipo;
   document.getElementById('i-eq').textContent = eq.codigo + ' · ' + eq.nombre;
@@ -555,7 +541,6 @@ function submitIniciar() {
     });
 }
 
-// ── Cerrar turno ──────────────────────────────────────────────────────────────
 function goCerrar() {
   var dt = ST.datosTurno;
   var eq = ST.equipo;
@@ -601,12 +586,30 @@ function submitCerrar() {
     });
 }
 
-// ── Reportar falla ────────────────────────────────────────────────────────────
 function goFalla() {
   var eq = ST.equipo;
   var dt = ST.datosTurno;
   document.getElementById('f-eq').textContent = eq.codigo + ' · ' + eq.nombre;
   document.getElementById('f-op').textContent = dt ? 'Operador: ' + dt.operador : '';
+
+  // Llenar selector de sistema con la lista que manda el backend.
+  // Si no hay lista (o backend viejo), se oculta el campo y todo sigue igual.
+  var selSis = document.getElementById('f-sistema');
+  var fgSis  = document.getElementById('f-fg-sistema');
+  var sistemas = ST.sistemas || [];
+  if (selSis && fgSis) {
+    if (sistemas.length > 0) {
+      selSis.innerHTML = '<option value="">— Selecciona sistema —</option>';
+      sistemas.forEach(function(s) {
+        selSis.innerHTML += '<option value="' + esc(s) + '">' + esc(s) + '</option>';
+      });
+      selSis.value = '';
+      fgSis.style.display = '';
+    } else {
+      fgSis.style.display = 'none';
+    }
+  }
+
   document.getElementById('f-desc').value = '';
   document.getElementById('f-tipo').value = 'Solo Reporte';
   document.getElementById('f-prio').value = 'MEDIA';
@@ -618,10 +621,12 @@ function submitFalla() {
   var desc = document.getElementById('f-desc').value.trim();
   var tipo = document.getElementById('f-tipo').value;
   var prio = document.getElementById('f-prio').value;
+  var selSis = document.getElementById('f-sistema');
+  var sistema = selSis ? selSis.value.trim() : '';
   if (!desc) { alert('Describe la falla antes de enviar.'); return; }
 
   setBtn('btn-falla-ok', true, 'Enviando...');
-  apiPost({ action: 'registrarFalla', falla: desc, tipoReporte: tipo, prioridad: prio })
+  apiPost({ action: 'registrarFalla', falla: desc, sistema: sistema, tipoReporte: tipo, prioridad: prio })
     .then(function(res) {
       if (res.success) {
         var msg = res.mensaje || 'Reporte enviado a Mesa de Ayuda.';
@@ -638,7 +643,6 @@ function submitFalla() {
     });
 }
 
-// ── Registrar actividad ───────────────────────────────────────────────────────
 function goActividad() {
   var eq = ST.equipo;
   var dt = ST.datosTurno;
@@ -705,7 +709,6 @@ function submitActividad() {
     });
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
 function showResult(icon, title, msg) {
   document.getElementById('r-icon').textContent  = icon;
   document.getElementById('r-title').textContent = title;
